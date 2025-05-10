@@ -10,10 +10,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	kvcorev1 "kubevirt.io/client-go/kubevirt/typed/core/v1"
 )
 
-var WsVnc = func(c *gin.Context) {
+var WsVnc1 = func(c *gin.Context) {
 	// VNC WebSocket 服务配置
 	var upgader = websocket.Upgrader{
 		// 读取缓冲区大小
@@ -66,13 +65,10 @@ var WsVnc = func(c *gin.Context) {
 	}
 
 	// 创建两个管道，用于在 VNC 连接和 WebSocket 之间传输数据
-	pipeInReader, pipeInWriter := io.Pipe()
-	pipeOutReader, pipeOutWriter := io.Pipe()
 
 	// 定义一个延迟执行的函数，确保在函数结束时关闭所有资源
 	defer func() {
-		pipeInWriter.Close()
-		pipeOutWriter.Close()
+
 		conn.Close()
 		cancel()
 	}()
@@ -80,22 +76,8 @@ var WsVnc = func(c *gin.Context) {
 	// 创建一个错误通道，用于接收各个 goroutine 中的错误信息
 	errChan := make(chan error, 3)
 
-	// 启动一个 goroutine 用于处理 VNC 数据的流传输
-	go func() {
-		// 调用 VNC 连接的 Stream 方法，将管道与 VNC 连接关联
-		err := vnc.Stream(kvcorev1.StreamOptions{
-			In:  pipeInReader,
-			Out: pipeOutWriter,
-		})
-		if err != nil {
-			// 若出现错误，记录错误日志
-			log.Printf("Error streaming VNC: %v", err)
-		}
-		// 将错误信息发送到错误通道
-		errChan <- err
-
-	}()
-
+	vncws := vnc.AsConn()
+	defer vncws.Close()
 	// 记录 VNC 客户端连接成功的信息
 	log.Printf("VNC Client connected to: %s", c.Param("vmname"))
 
@@ -128,7 +110,7 @@ var WsVnc = func(c *gin.Context) {
 	go func() {
 		// 定义一个延迟执行的函数，在 goroutine 结束时关闭资源并发送 EOF 到错误通道
 		defer func() {
-			pipeOutReader.Close()
+
 			conn.Close()
 			errChan <- io.EOF
 
@@ -143,12 +125,9 @@ var WsVnc = func(c *gin.Context) {
 				return
 			default:
 				// 从 pipeOutReader 读取数据
-				n, err := pipeOutReader.Read(buf)
+				n, err := vncws.Read(buf)
 				if err != nil {
-					// 若出现错误且不是 EOF，记录错误日志
-					if err != io.EOF {
-						log.Printf("Error reading from pipeOutReader: %v", err)
-					}
+
 					// 退出 goroutine
 					return
 				}
@@ -167,7 +146,7 @@ var WsVnc = func(c *gin.Context) {
 	go func() {
 		// 定义一个延迟执行的函数，在 goroutine 结束时关闭资源并发送 EOF 到错误通道
 		defer func() {
-			pipeInWriter.Close()
+
 			conn.Close()
 			errChan <- io.EOF
 
@@ -182,16 +161,11 @@ var WsVnc = func(c *gin.Context) {
 				// 从 WebSocket 获取下一个消息的读取器
 				_, reader, err := conn.NextReader()
 				if err != nil {
-					// 若出现意外关闭错误，记录错误日志
-					if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-						log.Printf("Error reading from WebSocket: %v", err)
-					}
-					// 退出 goroutine
 
 					return
 				}
 				// 将读取器中的数据复制到 pipeInWriter
-				if _, err := io.Copy(pipeInWriter, reader); err != nil {
+				if _, err := io.Copy(vncws, reader); err != nil {
 					// 复制失败，记录错误日志并退出 goroutine
 					log.Printf("Error writing to pipeInWriter: %v", err)
 					return

@@ -31,5 +31,5 @@ func Route(route *gin.Engine) {
 	}
 
 	// 处理 VNC WebSocket 连接的路由
-	route.GET("/vm/:vmname/vnc", WsVnc)
+	route.GET("/vm/:vmname/vnc", WsVnc1)
 }
