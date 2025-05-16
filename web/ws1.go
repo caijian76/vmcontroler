@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"log"
+	"log/slog"
 	"net/http"
 	"time"
 	"vmcontroller/vm"
@@ -38,8 +39,6 @@ var WsVnc1 = func(c *gin.Context) {
 
 	// 注册 WebSocket 关闭处理函数，当客户端关闭连接时触发
 	conn.SetCloseHandler(func(code int, text string) error {
-		// 记录客户端关闭连接的信息
-		log.Printf("WebSocket connection closed by client: code %d, text %s", code, text)
 		// 取消上下文
 		cancel()
 		return nil
@@ -179,5 +178,6 @@ var WsVnc1 = func(c *gin.Context) {
 	// 触发上下文取消，通知其他 goroutine 退出
 	cancel()
 	// 记录 VNC 客户端断开连接的信息
-	log.Printf("VNC Client disconnected from: %s", c.Param("vmname"))
+	slog.Info("VNC Client Disconnected From", "Name", c.Param("vmname"))
+	//log.Printf("VNC Client disconnected from: %s", c.Param("vmname"))
 }
