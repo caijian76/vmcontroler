@@ -6,6 +6,7 @@ replace k8s.io/kube-openapi v0.31.0 => k8s.io/kube-openapi v0.0.0-20250318190949
 
 require (
 	github.com/gin-gonic/gin v1.10.0
+	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/gorilla/websocket v1.5.3
 	github.com/spf13/pflag v1.0.6
 	k8s.io/apimachinery v0.31.0

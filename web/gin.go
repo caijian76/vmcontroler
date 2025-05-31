@@ -3,6 +3,7 @@ package web
 
 import (
 	"embed"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -32,11 +33,32 @@ func WebStart() {
 	//	gin.SetMode(gin.ReleaseMode)
 	// 创建一个新的 Gin 路由实例
 	route := gin.New()
-	//route.Use(gin.Logger())
+	route.Use(gin.Logger())
 	// 使用 Gin 的 Recovery 中间件，捕获并恢复处理请求时的 panic
 	route.Use(gin.Recovery())
+	// 使用全局 CORS 中间件
+	route.Use(CORSMiddleware())
 	Route(route)
 
 	// 启动 Gin 服务器，监听 8080 端口
 	route.Run(":8080")
+}
+
+// CORSMiddleware 定义 CORS 中间件
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// 设置允许的源，生产环境建议指定具体源
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
+		// 允许携带凭证
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(http.StatusNoContent)
+			return
+		}
+
+		c.Next()
+	}
 }
