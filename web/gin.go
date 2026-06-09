@@ -24,13 +24,18 @@ const (
 //go:embed noVNC-1.6.0
 var novncFS embed.FS
 
+//go:embed ui/dist
+var uiFS embed.FS
+
 // WebStart 函数用于启动 Web 服务，设置 HTTP 路由和 WebSocket 处理逻辑
 // virtClient 是 KubeVirt 客户端，用于与 KubeVirt 集群交互
 // namespace 是操作的命名空间
 func WebStart() {
 
-	//	gin.DisableConsoleColor()
-	//	gin.SetMode(gin.ReleaseMode)
+	// 打包后的程序默认使用 release 模式，避免 debug 日志和额外开销
+	gin.DisableConsoleColor()
+	gin.SetMode(gin.ReleaseMode)
+
 	// 创建一个新的 Gin 路由实例
 	route := gin.New()
 	route.Use(gin.Logger())

@@ -25,7 +25,7 @@
           <td>
             <template v-if="vm.Status === 'Running'">
               <a 
-                :href="`http://localhost:8080/novnc/vnc.html?path=/vm/${vm.Name}/vnc&autoconnect=true`" 
+                :href="`/novnc/vnc.html?path=/vm/${vm.Name}/vnc&autoconnect=true`" 
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -72,8 +72,8 @@ const fetchVmList = async () => {
       throw new Error('未找到有效的 JWT Token，请重新登录');
     }
 
-    // 发送请求获取虚拟机列表，添加 Authorization 请求头
-    const response = await fetch('http://localhost:8080/api/vm', {
+    // 发送请求获取虚拟机列表，添加 Authorization 请求头（同源请求，不写死 IP）
+    const response = await fetch('/api/vm', {
       headers: {
         Authorization: `${jwtToken}`
       }
@@ -103,7 +103,7 @@ const logout = () => {
 // 组件挂载后调用获取虚拟机列表的函数，并设置定时器
 onMounted(() => {
   fetchVmList();
-  refreshInterval = setInterval(fetchVmList, 5000);
+  refreshInterval = setInterval(fetchVmList, 15*1000);
 });
 
 // 组件卸载时清除定时器

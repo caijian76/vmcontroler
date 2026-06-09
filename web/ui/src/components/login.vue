@@ -55,8 +55,8 @@ const handleLogin = async () => {
     formData.append('username', username.value);
     formData.append('password', password.value);
 
-    // 发送登录请求
-    const response = await fetch('http://localhost:8080/login', {
+    // 发送登录请求（使用当前页面的同源地址，避免写死 IP）
+    const response = await fetch('/login', {
       method: 'POST',
       // 注意：不要设置 Content-Type 头，浏览器会自动处理
       body: formData
