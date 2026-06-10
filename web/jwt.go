@@ -26,7 +26,7 @@ func Login(c *gin.Context) {
 	password := c.PostForm("password")
 
 	// 这里简单模拟验证，实际需要替换为真实的验证逻辑
-	if username == "admin" && password == "password" {
+	if username == "admin" && password == "Edu@9527" {
 		// 设置 JWT 的过期时间
 		expirationTime := time.Now().Add(24 * time.Hour)
 		// 创建 JWT 的声明信息

@@ -18,7 +18,7 @@ func StartVM(vmname string) error {
 		return err
 	}
 
-	ctx, canel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, canel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer canel()
 	watch, err := VirtClient.VirtualMachine(Namespace).Watch(ctx, k8smetav1.ListOptions{
 		Watch:         true,
@@ -37,10 +37,10 @@ func StartVM(vmname string) error {
 	}
 	if ctx.Err() == context.DeadlineExceeded {
 
-		log.Println("启动VM:" + vmname + "已超时,将在30秒后自动关闭VM")
+		log.Println("启动VM:" + vmname + "已超时,自动关闭VM")
 
-		go StopVM(vmname, 30*time.Second)
-		return fmt.Errorf("启动VM:" + vmname + "已超时,将在30秒后自动关闭VM")
+		go StopVM(vmname, 0)
+		return fmt.Errorf("启动VM:" + vmname + "已超时,自动关闭VM")
 	}
 
 	log.Println("启动VM:" + vmname + "启动成功")
