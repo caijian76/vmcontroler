@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vmctr
+  namespace: kubevirt
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: vmctr
+subjects:
+- kind: ServiceAccount
+  name: vmctr
+  namespace: kubevirt
+roleRef:
+  kind: ClusterRole
+  name: vmctr
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: vmctr
+rules:
+- apiGroups:
+  - subresources.kubevirt.io
+  resources:
+  - virtualmachineinstances/console
+  - virtualmachineinstances/vnc
+  verbs:
+  - get
+- apiGroups:
+  - kubevirt.io
+  resources:
+  - virtualmachines
+  - virtualmachineinstances
+  - virtualmachineinstancepresets
+  - virtualmachineinstancereplicasets
+  - virtualmachineinstancemigrations
+  verbs:
+  - *
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: vmctr
+  name: vmctr
+  namespace: kubevirt
+spec:
+  ports:
+  - nodePort: 8002
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: vmctr
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vmctr
+  namespace: kubevirt
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vmctr
+  template:
+    metadata:
+      labels:
+        app: vmctr
+    spec:
+      serviceAccountName: vmctr
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ''
+      tolerations: 
+      - key: "node-role.kubernetes.io/master"
+        operator: "Equal"
+        value: ""
+        effect: "NoSchedule"
+      containers:
+      - name: vmctr
+        image: vmctr:v1.0
+        livenessProbe:
+          httpGet:
+            port: 8080
+            path: /
+            scheme: HTTP
+          failureThreshold: 30
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
