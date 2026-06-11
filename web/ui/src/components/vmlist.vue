@@ -10,7 +10,7 @@
     >
       {{ snackbarMessage }}
       <template v-slot:actions>
-        <v-btn color="blue" variant="text" @click="snackbar = false"> x </v-btn>
+        <v-btn color="blue" variant="text" @click="snackbarVisible = false"> x </v-btn>
       </template>
     </v-snackbar>
 
