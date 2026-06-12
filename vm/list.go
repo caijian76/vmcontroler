@@ -18,6 +18,7 @@ type VirtualMachine struct {
 	CPU       string
 	Memory    string
 	StartTime string
+	NodeName  string
 }
 
 type VirtualMachineList []VirtualMachine
@@ -36,10 +37,13 @@ func ListVm() (*VirtualMachineList, error) {
 	}
 
 	vmiStartTimes := make(map[string]time.Time, len(vmiList.Items))
+	vmiNodeNames := make(map[string]string, len(vmiList.Items))
+
 	for _, vmi := range vmiList.Items {
 		if !vmi.CreationTimestamp.IsZero() {
 			vmiStartTimes[vmi.Name] = vmi.CreationTimestamp.Time
 		}
+		vmiNodeNames[vmi.Name] = vmi.Status.NodeName
 	}
 
 	for _, vm := range vmList.Items {
@@ -74,6 +78,7 @@ func ListVm() (*VirtualMachineList, error) {
 			CPU:       cpu + " vCPU",
 			Memory:    memory,
 			StartTime: startTime,
+			NodeName:  vmiNodeNames[vm.Name],
 		})
 	}
 	return &vml, nil

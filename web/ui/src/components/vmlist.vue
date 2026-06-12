@@ -20,6 +20,7 @@
           <p class="eyebrow">KubeVirt</p>
           <h2>虚拟机列表</h2>
           <p class="subtitle">管理实例运行状态、查看就绪情况与启动/停止操作。</p>
+          <button class="new-vm-btn">新建虚拟机</button>
         </div>
         <button class="logout-btn" @click="logout">退出登录</button>
       </header>
@@ -32,6 +33,7 @@
         <tr>
           <th>名称</th>
           <th>基本配置</th>
+          <th>运行节点 </th>
           <th>就绪状态</th>
           <th>当前状态</th>
           <th>启动时间</th>
@@ -57,6 +59,7 @@
           </td>
           
           <td>{{ vm.CPU || '0 vCPU' }} / {{ vm.Memory || '未配置' }}</td>
+          <td>{{vm.Status === 'Running' ? (vm.NodeName || '未调度') : '未调度'}}</td>
           <td>{{ vm.Ready ? '就绪' : '未就绪' }}</td>
           <td>{{ vm.Status }}</td>
           <td>{{ vm.Status === 'Running' ? (vm.StartTime || '') : '' }}</td>
@@ -180,7 +183,6 @@ const toggleVmStatus = async (vm) => {
 
     if (!response.ok) {
       const message = await getErrorMessage(response, '操作失败，请稍后重试');
-      console.log('操作失败:', message);
       throw new Error(message);
     }
 
@@ -260,10 +262,12 @@ h2 {
   margin: 0;
   color: #cbd5e1;
   font-size: 14px;
+  padding-bottom: 10px;
 }
 
 .logout-btn,
-.power-btn {
+.power-btn,
+.new-vm-btn {
   border: none;
   border-radius: 10px;
   cursor: pointer;
@@ -313,6 +317,13 @@ tr:nth-child(even) {
 
 tr:hover {
   background: rgba(51, 65, 85, 0.55);
+}
+
+.new-vm-btn {
+  min-width: 72px;
+  padding: 8px 10px;
+  color: #fff;
+  background: linear-gradient(135deg, #f63b3b, #eb2525);
 }
 
 .power-btn {

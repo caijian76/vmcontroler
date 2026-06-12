@@ -66,6 +66,9 @@ func Route(route *gin.Engine) {
 
 			// Vm Status API：获取指定名称虚拟机的状态
 			api.GET("/vm/:vmname", StatusVm)
+
+			// Vm Create API：创建一个新的虚拟机
+			api.POST("/vm/:vmname/create", Createvm)
 		}
 
 	}
