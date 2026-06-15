@@ -20,7 +20,7 @@
           <p class="eyebrow">KubeVirt</p>
           <h2>虚拟机列表</h2>
           <p class="subtitle">管理实例运行状态、查看就绪情况与启动/停止操作。</p>
-          <button class="new-vm-btn">新建虚拟机</button>
+          <v-btn class="new-vm-btn" @click="openCreateDialog">新建虚拟机</v-btn>
         </div>
         <button class="logout-btn" @click="logout">退出登录</button>
       </header>
@@ -29,58 +29,159 @@
 
       <div v-else-if="vmList.length" class="table-wrap">
         <table>
-      <thead>
-        <tr>
-          <th>名称</th>
-          <th>基本配置</th>
-          <th>运行节点 </th>
-          <th>就绪状态</th>
-          <th>当前状态</th>
-          <th>启动时间</th>
-          <th>开关</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="vm in vmList" :key="vm.Name">
-          <!-- 第一列根据虚拟机状态决定是否显示超链接 -->
-          <td>
-            <template v-if="vm.Status === 'Running'">
-              <a 
-                :href="`/novnc/vnc.html?path=/vm/${vm.Name}/vnc&autoconnect=true`" 
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {{ vm.Name }}
-              </a>
-            </template>
-            <template v-else>
-              {{ vm.Name }}
-            </template>
-          </td>
-          
-          <td>{{ vm.CPU || '0 vCPU' }} / {{ vm.Memory || '未配置' }}</td>
-          <td>{{vm.Status === 'Running' ? (vm.NodeName || '未调度') : '未调度'}}</td>
-          <td>{{ vm.Ready ? '就绪' : '未就绪' }}</td>
-          <td>{{ vm.Status }}</td>
-          <td>{{ vm.Status === 'Running' ? (vm.StartTime || '') : '' }}</td>
-          <td>
-            <button
-              class="power-btn"
-              :class="vm.Status === 'Running' ? 'stop' : 'start'"
-              type="button"
-              :disabled="togglingVmNames.includes(vm.Name)"
-              @click="toggleVmStatus(vm)"
-            >
-              {{ togglingVmNames.includes(vm.Name) ? '处理中...' : (vm.Status === 'Running' ? '停止' : '启动') }}
-            </button>
-          </td>
-        </tr>
-      </tbody>
+          <thead>
+            <tr>
+              <th>名称</th>
+              <th>基本配置</th>
+              <th>运行节点 </th>
+              <th>就绪状态</th>
+              <th>当前状态</th>
+              <th>启动时间</th>
+              <th>开关</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="vm in vmList" :key="vm.Name">
+              <td>
+                <template v-if="vm.Status === 'Running'">
+                  <a
+                    :href="`/novnc/vnc.html?path=/vm/${vm.Name}/vnc&autoconnect=true`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {{ vm.Name }}
+                  </a>
+                </template>
+                <template v-else>
+                  {{ vm.Name }}
+                </template>
+              </td>
+
+              <td>{{ vm.CPU || '0 vCPU' }} / {{ vm.Memory || '未配置' }}</td>
+              <td>{{ vm.Status === 'Running' ? (vm.NodeName || '未调度') : '未调度' }}</td>
+              <td>{{ vm.Ready ? '就绪' : '未就绪' }}</td>
+              <td>{{ vm.Status }}</td>
+              <td>{{ vm.Status === 'Running' ? (vm.StartTime || '') : '' }}</td>
+              <td>
+                <button
+                  class="power-btn"
+                  :class="vm.Status === 'Running' ? 'stop' : 'start'"
+                  type="button"
+                  :disabled="togglingVmNames.includes(vm.Name)"
+                  @click="toggleVmStatus(vm)"
+                >
+                  {{ togglingVmNames.includes(vm.Name) ? '处理中...' : (vm.Status === 'Running' ? '停止' : '启动') }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
 
       <div v-else class="empty-state">暂无虚拟机数据</div>
     </section>
+
+    <!-- 新建虚拟机弹窗 -->
+    <v-dialog v-model="dialog" max-width="800" persistent>
+      <v-card title="配置新建虚拟机参数">
+        <v-card-text>
+          <v-form ref="createVmForm" v-model="formValid" lazy-validation>
+            <!-- 虚拟机名称 -->
+            <v-text-field
+              v-model="createForm.name"
+              label="虚拟机名称"
+              placeholder="仅小写字母、数字、横杠"
+              required
+              :rules="nameRules"
+              outlined
+              dense
+            ></v-text-field>
+
+            <!-- CPU + 内存 同一行两栏 -->
+            <v-row no-gutters>
+              <v-col cols="5" pr="4">
+                <v-text-field
+                  v-model.number="createForm.cpu"
+                  label="CPU(vCPU)"
+                  type="number"
+                  min="1"
+                  required
+                  :rules="numRules"
+                  outlined
+                  dense
+                ></v-text-field>
+              </v-col>
+            <v-col cols="2"></v-col>  
+  
+              <v-col cols="5">
+                <v-text-field
+                  v-model.number="createForm.memory"
+                  label="内存大小(GiB)"
+                  type="number"
+                  min="1"
+                  required
+                  :rules="numRules"
+                  outlined
+                  dense
+                ></v-text-field>
+              </v-col>
+            </v-row>
+            <v-row no-gutters>
+              <v-col cols="5">
+            <!-- 节点选择 -->
+            <v-select
+              v-model="createForm.node"
+              label="在哪个节点创建"
+              :items="nodeList"
+              required
+              outlined
+              dense
+            ></v-select>
+            </v-col>
+            <v-col cols="2"></v-col>  
+            <v-col cols="5">    
+            <!-- 存储磁盘大小 -->
+            <v-text-field
+              v-model.number="createForm.diskSize"
+              label="磁盘存储大小(GiB)"
+              type="number"
+              min="10"
+              required
+              :rules="numRules"
+              outlined
+              dense
+            ></v-text-field>
+            </v-col>
+            </v-row>
+
+            <!-- 网络模式 -->
+            <v-select
+              v-model="createForm.networkType"
+              label="网络模式"
+              :items="networkOptions"
+              required
+              outlined
+              dense
+            ></v-select>
+
+            <!-- 开机自动启动 -->
+
+            <v-switch
+             v-model="createForm.autoStart"
+             label="创建后自动开机"
+             color="primary"
+             thumb-color="orange-darken-2">
+            </v-switch>
+          </v-form>
+        </v-card-text>
+
+        <template v-slot:actions>
+          <v-spacer></v-spacer>
+          <v-btn @click="closeCreateDialog" color="grey">取消</v-btn>
+          <v-btn color="primary" :loading="submitting" @click="submitCreateVm">确认创建</v-btn>
+        </template>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -89,86 +190,122 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { useCookies } from 'vue3-cookies';
 import { useRouter } from 'vue-router';
 
-// 引入 vue3-cookies
 const { cookies } = useCookies();
 const router = useRouter();
 
-// 定义响应式变量
+// 页面基础状态
 const vmList = ref([]);
+const nodeList = ref([]);
 const isLoading = ref(true);
 const errorMessage = ref('');
 const togglingVmNames = ref([]);
 const snackbarVisible = ref(false);
 const snackbarMessage = ref('');
-// 定义定时器变量
+const dialog = ref(false);
+const submitting = ref(false);
+const formValid = ref(false);
+const createVmForm = ref(null);
+
+
+ 
+// 新建虚拟机表单数据
+const createForm = ref({
+  name: '',
+  cpu: 2,
+  memory: 4,
+  node: '',
+  diskSize: 20,
+  networkType: 'bridge',
+  autoStart: true
+});
+
+
+
+// 网络模式选项
+const networkOptions = ref([
+  { title: '桥接网络 bridge', value: 'bridge' },
+  { title: '集群默认Pod网络 pod', value: 'pod' },
+  { title: '隔离本地网络 isolated', value: 'isolated' }
+]);
+
+// 表单校验规则
+const nameRules = [
+  v => !!v || '虚拟机名称不能为空',
+  v => /^[a-z0-9-]+$/.test(v) || '只能小写字母、数字、横杠'
+];
+const numRules = [v => v >= 1 || '数值必须大于等于1'];
+
 let refreshInterval;
 
+// 消息提示
 const showToast = (message) => {
-  if (!message) {
-    return;
-  }
-
+  if (!message) return;
   snackbarMessage.value = message;
   snackbarVisible.value = true;
 };
 
+// 错误解析
 const getErrorMessage = async (response, fallbackMessage) => {
   try {
     const data = await response.json();
     if (data && typeof data === 'object') {
-      if (data.error) {
-        return `${fallbackMessage}：${data.error}`;
-      }
-      if (data.message) {
-        return `${fallbackMessage}：${data.message}`;
-      }
+      if (data.error) return `${fallbackMessage}：${data.error}`;
+      if (data.message) return `${fallbackMessage}：${data.message}`;
     }
-  } catch (error) {
-    // 忽略 JSON 解析失败，回退到默认提示
-  }
-
+  } catch (err) {}
   return fallbackMessage;
 };
 
+// 拉取节点列表
+const fetchNodeList = async () => {
+  try {
+    const jwtToken = getJwtToken();
+    const response = await fetch('/api/nodes', {
+      headers: { Authorization: `${jwtToken}` }
+    });
+    if (!response.ok) {
+      const msg = await getErrorMessage(response, '获取节点列表失败');
+      throw new Error(msg);
+    }
+    // 后端返回数组如 ["node1","node2"]
+    const nodes = await response.json();
+    nodeList.value = Array.isArray(nodes) ? nodes : [];
+  } catch (error) {
+    showToast(error.message);
+    nodeList.value = [];
+  }
+};
+
+// 获取Token
 const getJwtToken = () => {
   const jwtToken = cookies.get('jwt_token');
-  if (!jwtToken) {
-    throw new Error('未找到有效的 JWT Token，请重新登录');
-  }
+  if (!jwtToken) throw new Error('未找到有效的 JWT Token，请重新登录');
   return jwtToken;
 };
 
-// 获取虚拟机列表的函数
+// 拉取虚拟机列表
 const fetchVmList = async () => {
   try {
     const jwtToken = getJwtToken();
-
-    // 发送请求获取虚拟机列表，添加 Authorization 请求头（同源请求，不写死 IP）
     const response = await fetch('/api/vm', {
-      headers: {
-        Authorization: `${jwtToken}`
-      }
+      headers: { Authorization: `${jwtToken}` }
     });
     if (!response.ok) {
-      const message = await getErrorMessage(response, '请求失败，请稍后重试');
-      throw new Error(message);
+      const msg = await getErrorMessage(response, '请求失败，请稍后重试');
+      throw new Error(msg);
     }
-    // 解析响应数据
     vmList.value = await response.json();
   } catch (error) {
     errorMessage.value = error.message;
     showToast(error.message);
   } finally {
-    // 无论请求成功或失败，都结束加载状态
     isLoading.value = false;
   }
 };
 
+// 启停虚拟机
 const toggleVmStatus = async (vm) => {
-  if (togglingVmNames.value.includes(vm.Name)) {
-    return;
-  }
-
+  if (togglingVmNames.value.includes(vm.Name)) return;
   togglingVmNames.value = [...togglingVmNames.value, vm.Name];
   errorMessage.value = '';
 
@@ -176,40 +313,89 @@ const toggleVmStatus = async (vm) => {
     const jwtToken = getJwtToken();
     const action = vm.Status === 'Running' ? 'stop' : 'start';
     const response = await fetch(`/api/vm/${encodeURIComponent(vm.Name)}/${action}`, {
-      headers: {
-        Authorization: `${jwtToken}`
-      }
+      headers: { Authorization: `${jwtToken}` }
     });
-
     if (!response.ok) {
-      const message = await getErrorMessage(response, '操作失败，请稍后重试');
-      throw new Error(message);
+      const msg = await getErrorMessage(response, '操作失败，请稍后重试');
+      throw new Error(msg);
     }
-
     await fetchVmList();
+    showToast(`${vm.Name} ${action === 'start' ? '启动' : '停止'}指令下发成功`);
   } catch (error) {
     errorMessage.value = error.message;
     showToast(error.message);
   } finally {
-    togglingVmNames.value = togglingVmNames.value.filter((name) => name !== vm.Name);
+    togglingVmNames.value = togglingVmNames.value.filter(name => name !== vm.Name);
   }
 };
 
-// 退出登录函数
-const logout = () => {
-  // 清除 jwt_token Cookie
-  cookies.remove('jwt_token');
-  // 跳转回登录页面
-  router.push('/'); 
+// 打开弹窗并重置表单
+const openCreateDialog = () => {
+  // 重置为默认值
+  createForm.value = {
+    name: '',
+    cpu: 2,
+    memory: 4,
+    node: nodeList.value.length ? nodeList.value[0] : '',
+    diskSize: 20,
+    networkType: 'bridge',
+    autoStart: true
+  };
+  dialog.value = true;
 };
 
-// 组件挂载后调用获取虚拟机列表的函数，并设置定时器
+// 关闭弹窗
+const closeCreateDialog = () => {
+  dialog.value = false;
+  submitting.value = false;
+};
+
+// 提交创建虚拟机接口
+const submitCreateVm = async () => {
+  // 触发表单校验
+  await createVmForm.value.validate();
+  if (!formValid.value) return;
+
+  submitting.value = true;
+  try {
+    const jwtToken = getJwtToken();
+    const res = await fetch('/api/vm/create', {
+      method: 'POST',
+      headers: {
+        Authorization: `${jwtToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(createForm.value)
+    });
+
+    if (!res.ok) {
+      const errMsg = await getErrorMessage(res, '创建虚拟机失败');
+      throw new Error(errMsg);
+    }
+
+    showToast('虚拟机创建任务提交成功！');
+    closeCreateDialog();
+    // 刷新列表
+    await fetchVmList();
+  } catch (err) {
+    showToast(err.message);
+  } finally {
+    submitting.value = false;
+  }
+};
+
+// 退出登录
+const logout = () => {
+  cookies.remove('jwt_token');
+  router.push('/');
+};
+
 onMounted(() => {
   fetchVmList();
-  refreshInterval = setInterval(fetchVmList, 15*1000);
+  fetchNodeList();
+  refreshInterval = setInterval(fetchVmList, 15 * 1000);
 });
 
-// 组件卸载时清除定时器
 onUnmounted(() => {
   clearInterval(refreshInterval);
 });
@@ -323,7 +509,7 @@ tr:hover {
   min-width: 72px;
   padding: 8px 10px;
   color: #fff;
-  background: linear-gradient(135deg, #f63b3b, #eb2525);
+  background: linear-gradient(135deg, #e26b3b, #ca1e1e);
 }
 
 .power-btn {

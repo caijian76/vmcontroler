@@ -58,6 +58,8 @@ func Route(route *gin.Engine) {
 			// Vm List API：获取虚拟机列表
 			api.GET("/vm", Listvm)
 
+			api.GET("/nodes", ListNode)
+
 			// Vm Start API：启动指定名称的虚拟机
 			api.GET("/vm/:vmname/start", StartVm)
 
