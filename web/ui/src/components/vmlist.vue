@@ -294,7 +294,14 @@ const fetchVmList = async () => {
       const msg = await getErrorMessage(response, '请求失败，请稍后重试');
       throw new Error(msg);
     }
-    vmList.value = await response.json();
+    const vms = await response.json();
+    if (vms != null) {
+       
+      vmList.value = vms;
+    }else {
+      vmList.value = [];
+    }
+    
   } catch (error) {
     errorMessage.value = error.message;
     showToast(error.message);
@@ -320,7 +327,7 @@ const toggleVmStatus = async (vm) => {
       throw new Error(msg);
     }
     await fetchVmList();
-    showToast(`${vm.Name} ${action === 'start' ? '启动' : '停止'}指令下发成功`);
+    
   } catch (error) {
     errorMessage.value = error.message;
     showToast(error.message);
