@@ -11,11 +11,11 @@ import (
 )
 
 func StopVM(vmname string, delay time.Duration) error {
+	log.Printf("关闭VM:%s中...", vmname)
 	time.Sleep(delay)
-	log.Println("关闭VM:" + vmname + "中...")
 	err := VirtClient.VirtualMachine(Namespace).Stop(context.Background(), vmname, &v1.StopOptions{})
 	if err != nil {
-		log.Println("关闭VM:" + vmname + "失败! " + err.Error())
+		log.Printf("关闭VM:%s失败! %v", vmname, err)
 		return err
 	}
 
@@ -24,23 +24,23 @@ func StopVM(vmname string, delay time.Duration) error {
 
 	watch, err := VirtClient.VirtualMachine(Namespace).Watch(ctx, k8smetav1.ListOptions{
 		Watch:         true,
-		FieldSelector: "metadata.name=" + vmname,
+		FieldSelector: fmt.Sprintf("metadata.name=%s", vmname),
 	})
 	if err != nil {
-		log.Println("关闭VM:"+vmname+"监听状态失败:", err)
+		log.Printf("关闭VM:%s监听状态失败:%v", vmname, err)
 		return err
 	}
 	defer watch.Stop()
 
 	for event := range watch.ResultChan() {
 		if event.Object.(*v1.VirtualMachine).Status.PrintableStatus == "Stopped" {
-			log.Println("关闭VM:" + vmname + "成功")
+			log.Printf("关闭VM:%s成功", vmname)
 			return nil
 		}
 	}
 
 	if ctx.Err() == context.DeadlineExceeded {
-		return fmt.Errorf("关闭VM:" + vmname + "超时，未确认虚拟机已停止")
+		return fmt.Errorf("关闭VM:%s超时，未确认虚拟机已停止", vmname)
 	}
 
 	return nil

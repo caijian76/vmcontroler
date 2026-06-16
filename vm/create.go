@@ -22,10 +22,10 @@ func CreateVM(vmname string) error {
 	vm := NewVM(vmname)
 	vmjson, _ := (json.Marshal(vm))
 	log.Println(string(vmjson))
-	return createVM(vmname, vm)
+	return createVM(vm)
 }
 
-func createVM(vmname string, vm *v1.VirtualMachine) error {
+func createVM(vm *v1.VirtualMachine) error {
 
 	_, err := VirtClient.VirtualMachine(Namespace).Create(context.Background(), vm, k8smetav1.CreateOptions{})
 	return err

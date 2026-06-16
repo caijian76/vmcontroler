@@ -75,7 +75,7 @@ func ListVm() (*VirtualMachineList, error) {
 			Run:       string(vm.Status.RunStrategy),
 			Ready:     vm.Status.Ready,
 			Status:    string(vm.Status.PrintableStatus),
-			CPU:       cpu + " vCPU",
+			CPU:       fmt.Sprintf("%s vCPU", cpu),
 			Memory:    memory,
 			StartTime: startTime,
 			NodeName:  vmiNodeNames[vm.Name],

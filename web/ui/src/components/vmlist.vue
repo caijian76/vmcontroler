@@ -1,13 +1,6 @@
 <template>
   <div class="page-shell">
-    <v-snackbar
-      v-model="snackbarVisible"
-      :timeout="30000"
-      color="error"
-      location="top"
-      variant="elevated"
-      multi-line
-    >
+    <v-snackbar v-model="snackbarVisible" :timeout="30000" color="error" location="top" variant="elevated" multi-line>
       {{ snackbarMessage }}
       <template v-slot:actions>
         <v-btn color="blue" variant="text" @click="snackbarVisible = false"> x </v-btn>
@@ -44,11 +37,8 @@
             <tr v-for="vm in vmList" :key="vm.Name">
               <td>
                 <template v-if="vm.Status === 'Running'">
-                  <a
-                    :href="`/novnc/vnc.html?path=/vm/${vm.Name}/vnc&autoconnect=true`"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a :href="`/novnc/vnc.html?path=/vm/${vm.Name}/vnc&autoconnect=true`" target="_blank"
+                    rel="noopener noreferrer">
                     {{ vm.Name }}
                   </a>
                 </template>
@@ -63,13 +53,8 @@
               <td>{{ vm.Status }}</td>
               <td>{{ vm.Status === 'Running' ? (vm.StartTime || '') : '' }}</td>
               <td>
-                <button
-                  class="power-btn"
-                  :class="vm.Status === 'Running' ? 'stop' : 'start'"
-                  type="button"
-                  :disabled="togglingVmNames.includes(vm.Name)"
-                  @click="toggleVmStatus(vm)"
-                >
+                <button class="power-btn" :class="vm.Status === 'Running' ? 'stop' : 'start'" type="button"
+                  :disabled="togglingVmNames.includes(vm.Name)" @click="toggleVmStatus(vm)">
                   {{ togglingVmNames.includes(vm.Name) ? '处理中...' : (vm.Status === 'Running' ? '停止' : '启动') }}
                 </button>
               </td>
@@ -86,91 +71,56 @@
       <v-card title="配置新建虚拟机参数">
         <v-card-text>
           <v-form ref="createVmForm" v-model="formValid" lazy-validation>
-            <!-- 虚拟机名称 -->
-            <v-text-field
-              v-model="createForm.name"
-              label="虚拟机名称"
-              placeholder="仅小写字母、数字、横杠"
-              required
-              :rules="nameRules"
-              outlined
-              dense
-            ></v-text-field>
-
+            <v-row gap="12">
+              <v-col cols="12" sm="6">
+                <!-- 虚拟机名称 -->
+                <v-text-field v-model="createForm.name" label="虚拟机名称" placeholder="仅小写字母、数字、横杠" required
+                  :rules="nameRules" outlined dense></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <!-- 节点选择 -->
+                <v-select v-model="createForm.node" label="在哪个节点创建" :items="nodeList" required outlined
+                  dense></v-select>
+              </v-col>
+            </v-row>
             <!-- CPU + 内存 同一行两栏 -->
-            <v-row no-gutters>
-              <v-col cols="5" pr="4">
-                <v-text-field
-                  v-model.number="createForm.cpu"
-                  label="CPU(vCPU)"
-                  type="number"
-                  min="1"
-                  required
-                  :rules="numRules"
-                  outlined
-                  dense
-                ></v-text-field>
+            <v-row gap="12">
+              <v-col cols="12" sm="6">
+                <v-text-field v-model.number="createForm.cpu" label="CPU(vCPU)" type="number" min="1" required
+                  :rules="numRules" outlined dense></v-text-field>
               </v-col>
-            <v-col cols="2"></v-col>  
-  
-              <v-col cols="5">
-                <v-text-field
-                  v-model.number="createForm.memory"
-                  label="内存大小(GiB)"
-                  type="number"
-                  min="1"
-                  required
-                  :rules="numRules"
-                  outlined
-                  dense
-                ></v-text-field>
+
+              <v-col cols="12" sm="6">
+                <v-text-field v-model.number="createForm.memory" label="内存大小(GiB)" type="number" min="1" required
+                  :rules="numRules" outlined dense></v-text-field>
               </v-col>
             </v-row>
-            <v-row no-gutters>
-              <v-col cols="5">
-            <!-- 节点选择 -->
-            <v-select
-              v-model="createForm.node"
-              label="在哪个节点创建"
-              :items="nodeList"
-              required
-              outlined
-              dense
-            ></v-select>
-            </v-col>
-            <v-col cols="2"></v-col>  
-            <v-col cols="5">    
-            <!-- 存储磁盘大小 -->
-            <v-text-field
-              v-model.number="createForm.diskSize"
-              label="磁盘存储大小(GiB)"
-              type="number"
-              min="10"
-              required
-              :rules="numRules"
-              outlined
-              dense
-            ></v-text-field>
-            </v-col>
+            <v-row gap="12">
+              <v-col cols="12" sm="6">
+                <!-- 网络模式 -->
+                <v-select v-model="createForm.networkType" label="网络模式" :items="networkOptions" required outlined
+                  dense></v-select>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <!-- 存储磁盘大小 -->
+                <v-text-field v-model.number="createForm.diskSize" label="磁盘存储大小(GiB)" type="number" min="10" required
+                  :rules="numRules" outlined dense></v-text-field>
+              </v-col>
             </v-row>
 
-            <!-- 网络模式 -->
-            <v-select
-              v-model="createForm.networkType"
-              label="网络模式"
-              :items="networkOptions"
-              required
-              outlined
-              dense
-            ></v-select>
+            <v-row gap="12">
+              <v-col cols="12" sm="4">
+                <v-checkbox label="挂载ISO盘" v-model="createForm.mountISO"></v-checkbox>
+                </v-col>
+                <v-col cols="12" sm="8">
+                  <v-text-field v-model="createForm.isoPath" label="ISO文件路径" placeholder="例如: /root/ISO/ubuntu-22.04.iso" required
+                    :rules="pathRules" outlined dense></v-text-field>
+                  </v-col>  
+            </v-row>
 
             <!-- 开机自动启动 -->
 
-            <v-switch
-             v-model="createForm.autoStart"
-             label="创建后自动开机"
-             color="primary"
-             thumb-color="orange-darken-2">
+            <v-switch v-model="createForm.autoStart" label="创建后自动开机" color="primary" >
             </v-switch>
           </v-form>
         </v-card-text>
@@ -207,7 +157,7 @@ const formValid = ref(false);
 const createVmForm = ref(null);
 
 
- 
+
 // 新建虚拟机表单数据
 const createForm = ref({
   name: '',
@@ -215,7 +165,7 @@ const createForm = ref({
   memory: 4,
   node: '',
   diskSize: 20,
-  networkType: 'bridge',
+  networkType: 'masquerade',
   autoStart: true
 });
 
@@ -223,9 +173,8 @@ const createForm = ref({
 
 // 网络模式选项
 const networkOptions = ref([
-  { title: '桥接网络 bridge', value: 'bridge' },
-  { title: '集群默认Pod网络 pod', value: 'pod' },
-  { title: '隔离本地网络 isolated', value: 'isolated' }
+  { title: 'masquerade网络(缺省)', value: 'masquerade' },
+  { title: 'bridge桥接网络', value: 'bridge' }
 ]);
 
 // 表单校验规则
@@ -233,6 +182,7 @@ const nameRules = [
   v => !!v || '虚拟机名称不能为空',
   v => /^[a-z0-9-]+$/.test(v) || '只能小写字母、数字、横杠'
 ];
+const pathRules = [v => !!v || 'ISO盘路径不能为空', v => /^[a-z-Z0-9/_.]+$/.test(v) || '只能包含字母、数字、斜杠、下划线、点号'];
 const numRules = [v => v >= 1 || '数值必须大于等于1'];
 
 let refreshInterval;
@@ -252,7 +202,7 @@ const getErrorMessage = async (response, fallbackMessage) => {
       if (data.error) return `${fallbackMessage}：${data.error}`;
       if (data.message) return `${fallbackMessage}：${data.message}`;
     }
-  } catch (err) {}
+  } catch (err) { }
   return fallbackMessage;
 };
 
@@ -296,12 +246,12 @@ const fetchVmList = async () => {
     }
     const vms = await response.json();
     if (vms != null) {
-       
+
       vmList.value = vms;
-    }else {
+    } else {
       vmList.value = [];
     }
-    
+
   } catch (error) {
     errorMessage.value = error.message;
     showToast(error.message);
@@ -327,7 +277,7 @@ const toggleVmStatus = async (vm) => {
       throw new Error(msg);
     }
     await fetchVmList();
-    
+
   } catch (error) {
     errorMessage.value = error.message;
     showToast(error.message);
@@ -345,7 +295,7 @@ const openCreateDialog = () => {
     memory: 4,
     node: nodeList.value.length ? nodeList.value[0] : '',
     diskSize: 20,
-    networkType: 'bridge',
+    networkType: 'masquerade',
     autoStart: true
   };
   dialog.value = true;
@@ -491,7 +441,8 @@ h2 {
   overflow: hidden;
 }
 
-th, td {
+th,
+td {
   border-bottom: 1px solid rgba(148, 163, 184, 0.16);
   padding: 12px 10px;
   text-align: left;

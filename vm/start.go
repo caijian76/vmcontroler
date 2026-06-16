@@ -11,10 +11,10 @@ import (
 )
 
 func StartVM(vmname string) error {
-	log.Println("启动VM:" + vmname + "中...")
+	log.Printf("启动VM:%s中...", vmname)
 	err := VirtClient.VirtualMachine(Namespace).Start(context.Background(), vmname, &v1.StartOptions{})
 	if err != nil {
-		log.Println("启动VM:"+vmname+"失败 ,", err.Error())
+		log.Printf("启动VM:%s失败! %v", vmname, err)
 		return err
 	}
 
@@ -22,7 +22,7 @@ func StartVM(vmname string) error {
 	defer canel()
 	watch, err := VirtClient.VirtualMachine(Namespace).Watch(ctx, k8smetav1.ListOptions{
 		Watch:         true,
-		FieldSelector: "metadata.name=" + vmname,
+		FieldSelector: fmt.Sprintf("metadata.name=%s", vmname),
 	})
 	defer watch.Stop()
 	if err != nil {
@@ -37,12 +37,11 @@ func StartVM(vmname string) error {
 	}
 	if ctx.Err() == context.DeadlineExceeded {
 
-		log.Println("启动VM:" + vmname + "已超时,自动关闭VM")
+		log.Printf("启动VM:%s已超时,自动关闭VM", vmname)
 
 		go StopVM(vmname, 0)
-		return fmt.Errorf("启动VM:" + vmname + "已超时,自动关闭VM")
+		return fmt.Errorf("启动VM:%s已超时,自动关闭VM", vmname)
 	}
-
-	log.Println("启动VM:" + vmname + "启动成功")
+	log.Printf("启动VM:%s成功", vmname)
 	return nil
 }
