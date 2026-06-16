@@ -1,17 +1,9 @@
 <script setup>
 import { RouterView } from 'vue-router';
-import Login from './components/login.vue';
-
-
 </script>
 
 <template>
-
-
-  <main>
+  <v-app>
     <RouterView />
-  </main>
+  </v-app>
 </template>
-
-
-
