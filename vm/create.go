@@ -3,7 +3,10 @@ package vm
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
+	"strconv"
+	"vmcontroller/utils"
 
 	corev1 "k8s.io/api/core/v1"
 	resource "k8s.io/apimachinery/pkg/api/resource"
@@ -18,8 +21,8 @@ func UintPtr(i uint) *uint {
 	return &i
 }
 
-func CreateVM(vmname string) error {
-	vm := NewVM(vmname)
+func CreateVM(parse *utils.CreateVMRequest) error {
+	vm := NewVM(parse)
 	vmjson, _ := (json.Marshal(vm))
 	log.Println(string(vmjson))
 	return createVM(vm)
@@ -31,29 +34,28 @@ func createVM(vm *v1.VirtualMachine) error {
 	return err
 }
 
-func NewVM(vmName string) *v1.VirtualMachine {
+func NewVM(parse *utils.CreateVMRequest) *v1.VirtualMachine {
 
-	return &v1.VirtualMachine{
+	vm := &v1.VirtualMachine{
 		ObjectMeta: k8smetav1.ObjectMeta{
-			Name: vmName,
+			Name: parse.VMName,
 		},
 		Spec: v1.VirtualMachineSpec{
-			Running: BoolPtr(true),
+			Running: BoolPtr(parse.AutoStart),
 			Template: &v1.VirtualMachineInstanceTemplateSpec{
 				ObjectMeta: k8smetav1.ObjectMeta{
 					Labels: map[string]string{
-						"kubevirt.io/domain": vmName,
+						"kubevirt.io/domain": parse.VMName,
 					},
 				},
 				Spec: v1.VirtualMachineInstanceSpec{
-					// 节点固定调度到k8s2
 					NodeSelector: map[string]string{
-						"kubernetes.io/hostname": "k8s2",
+						"kubernetes.io/hostname": parse.Node,
 					},
 					Domain: v1.DomainSpec{
 						CPU: &v1.CPU{
-							Cores: 2,
-							Model: "host-passthrough",
+							Cores: uint32(parse.CPU),
+							// Model: "host-passthrough",
 						},
 						Devices: v1.Devices{
 							Inputs: []v1.Input{
@@ -68,7 +70,7 @@ func NewVM(vmName string) *v1.VirtualMachine {
 									Name:      "host-disk",
 									BootOrder: UintPtr(uint(1)),
 									DiskDevice: v1.DiskDevice{Disk: &v1.DiskTarget{
-										Bus: "virtio",
+										Bus: v1.DiskBus("virtio"),
 									},
 									},
 								},
@@ -90,7 +92,7 @@ func NewVM(vmName string) *v1.VirtualMachine {
 						},
 						Resources: v1.ResourceRequirements{
 							Requests: corev1.ResourceList{
-								"memory": resource.MustParse("4Gi"),
+								"memory": resource.MustParse(strconv.Itoa(int(parse.Memory)) + "Gi"),
 							},
 						},
 					},
@@ -107,9 +109,9 @@ func NewVM(vmName string) *v1.VirtualMachine {
 							Name: "host-disk",
 							VolumeSource: v1.VolumeSource{
 								HostDisk: &v1.HostDisk{
-									Path:     "/root/kubevirt/template/ubuntu-gui-base-2204/ubuntu-gui-base-2204.img",
+									Path:     fmt.Sprintf("/root/kubevirt/template/%s/%s.img", parse.VMName, parse.VMName),
 									Type:     v1.HostDiskType("DiskOrCreate"),
-									Capacity: resource.MustParse("50Gi"),
+									Capacity: resource.MustParse(strconv.Itoa(int(parse.DiskSize)) + "Gi"),
 								},
 							},
 						},
@@ -118,4 +120,27 @@ func NewVM(vmName string) *v1.VirtualMachine {
 			},
 		},
 	}
+
+	if parse.MountISO {
+		vm.Spec.Template.Spec.Domain.Devices.Disks = append(vm.Spec.Template.Spec.Domain.Devices.Disks, v1.Disk{
+			Name:      "cdromiso",
+			BootOrder: UintPtr(uint(2)),
+			DiskDevice: v1.DiskDevice{
+				CDRom: &v1.CDRomTarget{
+					Bus: v1.DiskBus("sata"),
+				},
+			},
+		})
+		vm.Spec.Template.Spec.Volumes = append(vm.Spec.Template.Spec.Volumes, v1.Volume{
+			Name: "cdromiso",
+			VolumeSource: v1.VolumeSource{
+				HostDisk: &v1.HostDisk{
+					Path: parse.ISOPath,
+					Type: v1.HostDiskType("Disk"),
+				},
+			},
+		})
+	}
+
+	return vm
 }

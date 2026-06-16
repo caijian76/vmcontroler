@@ -70,7 +70,7 @@ func Route(route *gin.Engine) {
 			api.GET("/vm/:vmname", StatusVm)
 
 			// Vm Create API：创建一个新的虚拟机
-			api.POST("/vm/:vmname/create", Createvm)
+			api.POST("/vm/create", Createvm)
 		}
 
 	}

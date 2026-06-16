@@ -1,19 +1,24 @@
 package web
 
 import (
+	"log"
+	"vmcontroller/utils"
 	"vmcontroller/vm"
 
 	"github.com/gin-gonic/gin"
 )
 
 var Createvm = func(c *gin.Context) {
-	vmname := c.Param("vmname")
-	err := vm.CreateVM(vmname)
+	var req utils.CreateVMRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid request body"})
+		return
+	}
+	log.Printf("CreateVMRequest: %v", req)
+	err := vm.CreateVM(&req)
 	if err != nil {
-		// 若出错，返回 500 状态码和错误信息
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
-	// 成功获取列表，返回 200 状态码和虚拟机列表
 	c.JSON(200, gin.H{"message": "VM created successfully"})
 }

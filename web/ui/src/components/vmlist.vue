@@ -1,6 +1,6 @@
 <template>
   <v-container class="py-8" fluid>
-    <v-snackbar v-model="snackbarVisible" :timeout="30000" color="error" location="top" variant="elevated" multi-line>
+    <v-snackbar v-model="snackbarVisible" :timeout="10000" color="error" location="top" variant="elevated" multi-line>
       {{ snackbarMessage }}
       <template v-slot:actions>
         <v-btn color="blue" variant="text" @click="snackbarVisible = false"> x </v-btn>
@@ -10,9 +10,9 @@
     <v-card elevation="4" class="mx-auto" max-width="1400">
       <v-card-title>
         <div>
-          <span class="text-h5 text-blue-400 mt-1">KubeVirt</span>
+          
           <h2 class="text-h4 font-weight-bold mt-1">虚拟机列表</h2>
-          <p class="text-body-1 text-grey mt-1">管理实例运行状态、查看就绪情况与启动/停止操作。</p>
+          <p class="text-body-1 text-grey mt-1">管理实例运行状态、新建虚拟机、查看就绪情况与启动/停止操作。(删除，修改等操作暂不支持，请在Kubernetes集群中手动操作)</p>
         </div>
       </v-card-title>
 
@@ -71,7 +71,7 @@
             <v-btn color="orange" :disabled="togglingVmNames.includes(item.Name)"
               :loading="togglingVmNames.includes(item.Name)" size="small" class="white--text"
               @click="toggleVmStatus(item)">
-              {{ item.Status === 'Running' ? '停止' : '启动' }}
+              {{ item.Status != 'Stopped' ? '停止' : '启动' }}
             </v-btn>
           </template>
         </v-data-table>
@@ -172,7 +172,9 @@ const createForm = ref({
   node: '',
   diskSize: 20,
   networkType: 'masquerade',
-  autoStart: true
+  autoStart: true,
+  mountISO: false,
+  isoPath: '',
 });
 
 const networkOptions = ref([
@@ -194,7 +196,7 @@ const nameRules = [
   v => !!v || '虚拟机名称不能为空',
   v => /^[a-z0-9-]+$/.test(v) || '只能小写字母、数字、横杠'
 ];
-const pathRules = [v => !!v || 'ISO盘路径不能为空', v => /^[a-z-Z0-9/_.]+$/.test(v) || '只能包含字母、数字、斜杠、下划线、点号'];
+const pathRules = [v => !!v || 'ISO盘路径不能为空', v => /^[a-zA-Z0-9-/_.]+$/.test(v) || '只能包含字母、数字、斜杠、横杆、下划线、点号'];
 const numRules = [v => v >= 1 || '数值必须大于等于1'];
 
 let refreshInterval;
@@ -265,7 +267,7 @@ const toggleVmStatus = async (vm) => {
 
   try {
     const jwtToken = getJwtToken();
-    const action = vm.Status === 'Running' ? 'stop' : 'start';
+    const action = vm.Status === 'Stopped' ? 'start' : 'stop';
     const response = await fetch(`/api/vm/${encodeURIComponent(vm.Name)}/${action}`, {
       headers: { Authorization: `${jwtToken}` }
     });
@@ -289,7 +291,9 @@ const openCreateDialog = () => {
     node: nodeList.value.length ? nodeList.value[0] : '',
     diskSize: 20,
     networkType: 'masquerade',
-    autoStart: true
+    autoStart: true,
+    mountISO: false,
+    isoPath: '',
   };
   dialog.value = true;
 };
@@ -306,6 +310,7 @@ const submitCreateVm = async () => {
   submitting.value = true;
   try {
     const jwtToken = getJwtToken();
+ //   console.log ('Submitting create VM form with data:', createForm.value);
     const res = await fetch('/api/vm/create', {
       method: 'POST',
       headers: {
