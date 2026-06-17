@@ -41,6 +41,13 @@ rules:
   - virtualmachineinstancemigrations
   verbs:
   - '*'
+- apiGroups:
+  - ''
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list  
 ---
 apiVersion: v1
 kind: Service
