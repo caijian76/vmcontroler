@@ -18,11 +18,11 @@
 
       <div class="d-flex align-center ga-2">
         <v-chip size="x-small" variant="tonal" color="success">
-          <v-icon start size="14">mdi-server</v-icon>
+          <v-icon start size="14">mdi-laptop</v-icon>
           {{ vmList.length }}
         </v-chip>
-        <v-chip size="x-small" variant="tonal" color="info">
-          <v-icon start size="14">mdi-network-node</v-icon>
+        <v-chip size="x-small" variant="tonal" color="success">
+          <v-icon start size="14">mdi-server</v-icon>
           {{ nodeList.length }}
         </v-chip>
         <v-btn
@@ -560,7 +560,8 @@ const fetchNodeList = async () => {
       const msg = await getErrorMessage(response, '获取节点列表失败');
       throw new Error(msg);
     }
-    nodeList.value = Array.isArray(await response.json()) ? (await response.json()).slice() : [];
+    const nodes = await response.json();
+    nodeList.value = Array.isArray(nodes) ? nodes : [];
   } catch (error) {
     showToast(error.message);
     nodeList.value = [];
