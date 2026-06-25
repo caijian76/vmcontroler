@@ -52,13 +52,13 @@
           </template>
 
           <template v-slot:item.ready="{ item }">
-            <v-chip color="success" size="small" class="white--text">
+            <v-chip :color="item.Ready ? 'success' : 'error'" size="small" class="white--text">
               {{ item.Ready ? '就绪' : '未就绪' }}
             </v-chip>
           </template>
 
           <template v-slot:item.status="{ item }">
-            <v-chip color="success" size="small" class="white--text">
+            <v-chip :color="item.Status === 'Running' ? 'success' : 'error'" size="small" class="white--text">
               {{ item.Status }}
             </v-chip>
           </template>
