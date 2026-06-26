@@ -30,7 +30,7 @@ func CreateVM(parse *utils.CreateVMRequest) error {
 
 func createVM(vm *v1.VirtualMachine) error {
 
-	_, err := VirtClient.VirtualMachine(Namespace).Create(context.Background(), vm, k8smetav1.CreateOptions{})
+	_, err := VirtClient.VirtualMachine(DefaultNamespace).Create(context.Background(), vm, k8smetav1.CreateOptions{})
 	return err
 }
 
