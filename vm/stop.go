@@ -13,7 +13,7 @@ import (
 func StopVM(vmname string, delay time.Duration) error {
 	log.Printf("关闭VM:%s中...", vmname)
 	time.Sleep(delay)
-	err := VirtClient.VirtualMachine(Namespace).Stop(context.Background(), vmname, &v1.StopOptions{})
+	err := VirtClient.VirtualMachine(DefaultNamespace).Stop(context.Background(), vmname, &v1.StopOptions{})
 	if err != nil {
 		log.Printf("关闭VM:%s失败! %v", vmname, err)
 		return err
@@ -22,7 +22,7 @@ func StopVM(vmname string, delay time.Duration) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	watch, err := VirtClient.VirtualMachine(Namespace).Watch(ctx, k8smetav1.ListOptions{
+	watch, err := VirtClient.VirtualMachine(DefaultNamespace).Watch(ctx, k8smetav1.ListOptions{
 		Watch:         true,
 		FieldSelector: fmt.Sprintf("metadata.name=%s", vmname),
 	})
