@@ -1,74 +1,110 @@
 <template>
-  <v-container class="justify-center w-50"  >
-    <div class="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 flex items-center justify-center" >
-
-
-      <v-card  elevation="12" class="mx-auto max-w-md w-full mx-4 bg-white/95 backdrop-blur-sm rounded-2xl">
-        <v-card-title class="text-center pb-10">
-          <div class="flex flex-col items-center">
-            <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
-              <v-icon size="32" class="white--text">mdi-server</v-icon>
-            </div>
-            <span class="text-h5 text-gray-500 mt-1">虚拟机管理平台</span>
-          </div>
-        </v-card-title>
-
-        <v-card-text class="mx-auto max-w-md w-full mx-4 bg-white/95 backdrop-blur-sm rounded-2xl w-66">
-          <v-form @submit.prevent="handleLogin" ref="loginForm">
-            <v-text-field 
-              v-model="username"
-              label="用户名"
-              placeholder="请输入用户名"
-              required
-              autofocus
-              outlined
-              rounded-lg
-              color="blue"
-              prepend-inner-icon="mdi-account"
-              class="transition-all duration-600 px-10 "
-            />
-            <v-text-field
-              v-model="password"
-              label="密码"
-              type="password"
-              placeholder="请输入密码"
-              required
-              outlined
-              rounded-lg
-              color="blue"
-              prepend-inner-icon="mdi-lock"
-              class="mt-4 transition-all duration-300 px-10"
-              @keydown.enter="handleLogin"
-            />
-          </v-form>
-          <v-alert
-            v-if="errorMessage"
-            type="error"
-            border="left"
-            class="mt-4"
-            dense
-            transition="slide-y-reverse-transition"
+  <v-sheet
+    class="d-flex align-center justify-center"
+    height="100vh"
+    :style="{
+      background: 'linear-gradient(135deg, #1a73e8 0%, #6c3bbf 50%, #1a237e 100%)',
+    }"
+  >
+    <v-container class="d-flex align-center justify-center">
+      <v-row justify="center">
+        <v-col cols="12" sm="8" md="5" lg="4">
+          <v-card
+            elevation="16"
+            class="rounded-xl"
+            :style="{
+              background: 'rgba(255, 255, 255, 0.92)',
+              backdropFilter: 'blur(20px)',
+            }"
           >
-            {{ errorMessage }}
-          </v-alert>
-        </v-card-text>
+            <v-card-item class="pt-10 pb-4">
+              <template v-slot:prepend>
+                <v-avatar
+                  size="64"
+                  rounded="lg"
+                  :style="{
+                    background: 'linear-gradient(135deg, #1a73e8, #6c3bbf)',
+                  }"
+                  class="elevation-4"
+                >
+                  <v-icon size="36" color="white">mdi-server</v-icon>
+                </v-avatar>
+              </template>
+              <template v-slot:title>
+                <span class="text-h5 font-weight-bold">虚拟机管理平台</span>
+              </template>
+              <template v-slot:subtitle>
+                <span class="text-body-2 text-grey-darken-1">请使用您的凭据登录</span>
+              </template>
+            </v-card-item>
 
-        <v-card-actions class="pb-6 px-6 justify-center">
-          <v-btn
-            type="submit"
-            color="blue"
-            variant="elevated"
-            class="w-full rounded-lg text-white font-medium"
-            :disabled="isSubmitting"
-            :loading="isSubmitting"
-            @click="handleLogin"
-          >
-            {{ isSubmitting ? '登录中...' : '登录' }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </div>
-  </v-container>
+            <v-card-text class="px-8 pb-2">
+              <v-form @submit.prevent="handleLogin" ref="loginForm" validate-on="submit">
+                <v-text-field
+                  v-model="username"
+                  label="用户名"
+                  placeholder="请输入用户名"
+                  variant="outlined"
+                  density="comfortable"
+                  color="primary"
+                  prepend-inner-icon="mdi-account-outline"
+                  :rules="[v => !!v || '请输入用户名']"
+                  class="mb-3"
+                  autofocus
+                />
+
+                <v-text-field
+                  v-model="password"
+                  label="密码"
+                  placeholder="请输入密码"
+                  type="password"
+                  variant="outlined"
+                  density="comfortable"
+                  color="primary"
+                  prepend-inner-icon="mdi-lock-outline"
+                  :rules="[v => !!v || '请输入密码']"
+                  class="mb-2"
+                  @keydown.enter="handleLogin"
+                />
+
+                <v-alert
+                  v-if="errorMessage"
+                  type="error"
+                  variant="tonal"
+                  density="compact"
+                  border="start"
+                  class="mb-4 mt-2"
+                  closable
+                  @click:close="errorMessage = ''"
+                >
+                  {{ errorMessage }}
+                </v-alert>
+              </v-form>
+            </v-card-text>
+
+            <v-card-actions class="px-8 pb-10">
+              <v-btn
+                color="primary"
+                size="large"
+                block
+                rounded="lg"
+                variant="flat"
+                :disabled="isSubmitting"
+                :loading="isSubmitting"
+                @click="handleLogin"
+                :style="{
+                  background: 'linear-gradient(135deg, #1a73e8, #6c3bbf)',
+                }"
+              >
+                <v-icon start v-if="!isSubmitting">mdi-login</v-icon>
+                {{ isSubmitting ? '登录中...' : '登 录' }}
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+  </v-sheet>
 </template>
 
 <script setup>
@@ -86,10 +122,8 @@ const errorMessage = ref('');
 const loginForm = ref(null);
 
 const handleLogin = async () => {
-  if (!username.value.trim() || !password.value.trim()) {
-    errorMessage.value = '请输入用户名和密码';
-    return;
-  }
+  const { valid } = await loginForm.value.validate();
+  if (!valid) return;
 
   isSubmitting.value = true;
   errorMessage.value = '';
@@ -101,7 +135,7 @@ const handleLogin = async () => {
 
     const response = await fetch('/login', {
       method: 'POST',
-      body: formData
+      body: formData,
     });
 
     if (!response.ok) {
