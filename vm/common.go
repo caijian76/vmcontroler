@@ -8,6 +8,7 @@ import (
 )
 
 var Namespace string
+var DefaultNamespace = "default"
 var VirtClient kubecli.KubevirtClient
 
 func init() {

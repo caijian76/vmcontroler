@@ -31,7 +31,7 @@ func ListVm() (*VirtualMachineList, error) {
 		return nil, fmt.Errorf("cannot obtain KubeVirt vm list: %v", err)
 	}
 
-	vmiList, err := VirtClient.VirtualMachineInstance(Namespace).List(context.Background(), k8smetav1.ListOptions{})
+	vmiList, err := VirtClient.VirtualMachineInstance(DefaultNamespace).List(context.Background(), k8smetav1.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("cannot obtain KubeVirt vmi list: %v", err)
 	}

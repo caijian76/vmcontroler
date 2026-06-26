@@ -11,12 +11,12 @@ import (
 
 func StatusVM(vmname string) (*VirtualMachine, error) {
 	repeatvm := VirtualMachine{}
-	vm, err := VirtClient.VirtualMachine(Namespace).Get(context.Background(), vmname, k8smetav1.GetOptions{})
+	vm, err := VirtClient.VirtualMachine(DefaultNamespace).Get(context.Background(), vmname, k8smetav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	vmi, err := VirtClient.VirtualMachineInstance(Namespace).Get(context.Background(), vmname, k8smetav1.GetOptions{})
+	vmi, err := VirtClient.VirtualMachineInstance(DefaultNamespace).Get(context.Background(), vmname, k8smetav1.GetOptions{})
 	cpu := "0"
 	memory := ""
 	startTime := ""

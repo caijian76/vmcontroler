@@ -7,20 +7,20 @@ metadata:
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: vmctr
+  name: vmctr-rolebind
 subjects:
 - kind: ServiceAccount
   name: vmctr
   namespace: kubevirt
 roleRef:
   kind: ClusterRole
-  name: vmctr
+  name: vmctr-role
   apiGroup: rbac.authorization.k8s.io
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: vmctr
+  name: vmctr-role
 rules:
 - apiGroups:
   - subresources.kubevirt.io
@@ -84,14 +84,10 @@ spec:
       serviceAccountName: vmctr
       nodeSelector:
         node-role.kubernetes.io/control-plane: ''
-      tolerations: 
-      - key: "node-role.kubernetes.io/master"
-        operator: "Equal"
-        value: ""
-        effect: "NoSchedule"
       containers:
       - name: vmctr
-        image: vmctr:v1.0
+        image: ghcr.io/caijian76/vmcontroler:main
+        imagePullPolicy: Always
         livenessProbe:
           httpGet:
             port: 8080
