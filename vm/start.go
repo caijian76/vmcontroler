@@ -12,7 +12,7 @@ import (
 
 func StartVM(vmname string) error {
 	log.Printf("启动VM:%s中...", vmname)
-	err := VirtClient.VirtualMachine(Namespace).Start(context.Background(), vmname, &v1.StartOptions{})
+	err := VirtClient.VirtualMachine(DefaultNamespace).Start(context.Background(), vmname, &v1.StartOptions{})
 	if err != nil {
 		log.Printf("启动VM:%s失败! %v", vmname, err)
 		return err
@@ -20,7 +20,7 @@ func StartVM(vmname string) error {
 
 	ctx, canel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer canel()
-	watch, err := VirtClient.VirtualMachine(Namespace).Watch(ctx, k8smetav1.ListOptions{
+	watch, err := VirtClient.VirtualMachine(DefaultNamespace).Watch(ctx, k8smetav1.ListOptions{
 		Watch:         true,
 		FieldSelector: fmt.Sprintf("metadata.name=%s", vmname),
 	})
