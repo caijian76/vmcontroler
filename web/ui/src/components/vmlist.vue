@@ -469,7 +469,13 @@ const fetchNodeList = async () => {
 
 const getJwtToken = () => {
   const jwtToken = cookies.get('jwt_token');
-  if (!jwtToken) throw new Error('未找到有效的 JWT Token，请重新登录');
+  if (!jwtToken) {
+    // showToast('登录已过期，请重新登录');
+    setTimeout(() => {
+      router.push('/');
+    }, 2000);
+    throw new Error('未找到有效的 JWT Token, 请重新登录');
+  }
   return jwtToken;
 };
 

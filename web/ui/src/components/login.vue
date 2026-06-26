@@ -108,12 +108,19 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useCookies } from 'vue3-cookies';
 import { useRouter } from 'vue-router';
 
 const { cookies } = useCookies();
 const router = useRouter();
+
+onMounted(() => {
+  const token = cookies.get('jwt_token');
+  if (token) {
+    router.push('/vmlist');
+  }
+});
 
 const username = ref('');
 const password = ref('');
@@ -144,7 +151,7 @@ const handleLogin = async () => {
 
     const data = await response.json();
     if (data.token) {
-      cookies.set('jwt_token', data.token, '1h');
+      cookies.set('jwt_token', data.token, '4h');
       router.push('/vmlist');
     } else {
       throw new Error('未收到有效的 token');
