@@ -26,7 +26,7 @@ type VirtualMachineList []VirtualMachine
 func ListVm() (*VirtualMachineList, error) {
 	var vml VirtualMachineList
 	// Fetch list of VMs & VMIs
-	vmList, err := VirtClient.VirtualMachine(Namespace).List(context.Background(), k8smetav1.ListOptions{})
+	vmList, err := VirtClient.VirtualMachine(DefaultNamespace).List(context.Background(), k8smetav1.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("cannot obtain KubeVirt vm list: %v", err)
 	}
