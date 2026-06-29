@@ -12,6 +12,17 @@ import { aliases, mdi } from 'vuetify/iconsets/mdi';
 const vuetify = createVuetify({
   components,
   directives,
+  locale: {
+    locale: 'zhHans',
+    messages: {
+      zhHans: {
+        dataFooter: {
+          itemsPerPageText: '每页行数:',
+          pageText: '{0}-{1} 共 {2}',
+        },
+      },
+    },
+  },
   icons: {
     defaultSet: 'mdi',
     aliases,

@@ -127,7 +127,7 @@
                     </v-chip>
                   </template>
 
-                  <template v-slot:item.node="{ item }">
+                  <template v-slot:item.Node="{ item }">
                     <v-chip
                       v-if="item.Status === 'Running' && item.NodeName"
                       size="small"
@@ -140,7 +140,7 @@
                     <span v-else class="text-medium-emphasis text-caption">未调度</span>
                   </template>
 
-                  <template v-slot:item.ready="{ item }">
+                  <template v-slot:item.Ready="{ item }">
                     <v-chip
                       :color="item.Ready ? 'success' : 'warning'"
                       size="small"
@@ -409,10 +409,10 @@ const networkOptions = ref([
 ]);
 
 const headers = ref([
-  { title: '名称', align: 'start', key: 'name', sortable: false },
+  { title: '名称', align: 'start', key: 'Name', sortable: true },
   { title: '基本配置', align: 'start', key: 'config', sortable: false },
-  { title: '运行节点', align: 'start', key: 'node', sortable: false },
-  { title: '就绪状态', align: 'start', key: 'ready', sortable: false },
+  { title: '运行节点', align: 'start', key: 'Node', sortable: true },
+  { title: '就绪状态', align: 'start', key: 'Ready', sortable: true },
   { title: '当前状态', align: 'start', key: 'status', sortable: false },
   { title: '启动时间', align: 'start', key: 'startTime', sortable: false },
   { title: '操作', align: 'center', key: 'actions', sortable: false },
