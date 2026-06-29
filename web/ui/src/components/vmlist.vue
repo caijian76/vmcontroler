@@ -127,7 +127,7 @@
                     </v-chip>
                   </template>
 
-                  <template v-slot:item.Node="{ item }">
+                  <template v-slot:item.node="{ item }">
                     <v-chip
                       v-if="item.Status === 'Running' && item.NodeName"
                       size="small"
@@ -411,7 +411,7 @@ const networkOptions = ref([
 const headers = ref([
   { title: '名称', align: 'start', key: 'Name', sortable: true },
   { title: '基本配置', align: 'start', key: 'config', sortable: false },
-  { title: '运行节点', align: 'start', key: 'Node', sortable: true },
+  { title: '运行节点', align: 'start', key: 'node', sortable: false },
   { title: '就绪状态', align: 'start', key: 'Ready', sortable: true },
   { title: '当前状态', align: 'start', key: 'status', sortable: false },
   { title: '启动时间', align: 'start', key: 'startTime', sortable: false },
