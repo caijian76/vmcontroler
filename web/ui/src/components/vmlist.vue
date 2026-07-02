@@ -101,7 +101,7 @@
                   items-per-page="-1"
                   class="elevation-0"
                 >
-                  <template v-slot:item.name="{ item }">
+                  <template v-slot:item.Name="{ item }">
                     <a
                       v-if="item.Status === 'Running'"
                       :href="`/novnc/vnc.html?path=/vm/${item.Name}/vnc&autoconnect=true`"
